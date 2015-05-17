@@ -21,6 +21,7 @@
   "author": "Tobias Bieniek <tobias.bieniek@gmx.de>",
   "license": "ISC",
   "dependencies": {
+    "lodash.defaults": "^3.1.1",
     "node-notifier": "^4.1.0"
   },
   "devDependencies": {

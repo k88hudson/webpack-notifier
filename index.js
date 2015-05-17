@@ -1,11 +1,37 @@
 var path = require('path');
 var notifier = require('node-notifier');
+var defaults = require('lodash.defaults');
 
-var DEFAULT_LOGO = path.join(__dirname, 'logo.png');
-
-var WebpackNotifierPlugin = module.exports = function(options) {
-    this.options = options || {};
+var WebpackNotifierPlugin = module.exports = function(options, events) {
+    if (typeof options !== 'object') options = {};
+    this.options = defaults(options, WebpackNotifierPlugin.DEFAULT_OPTIONS);
+    this.events = this.prepareDefaults(events, this.options);
     this.lastBuildSucceeded = false;
+};
+
+WebpackNotifierPlugin.DEFAULT_OPTIONS = {
+    title: 'Webpack',
+    contentImage: path.join(__dirname, 'logo.png')
+};
+
+WebpackNotifierPlugin.DEFAULT_EVENTS = {
+    error: true,
+    warning: true,
+    success: {message: 'Build successful'},
+    rebuild: false
+};
+
+WebpackNotifierPlugin.prototype.prepareDefaults = function(events, options) {
+    options = options || WebpackNotifierPlugin.DEFAULT_OPTIONS;
+    events = defaults(events || {}, WebpackNotifierPlugin.DEFAULT_EVENTS);
+    Object.keys(events).forEach(function (event) {
+        var eventDefaults = WebpackNotifierPlugin.DEFAULT_EVENTS[event];
+        if (events[event] === false) return;
+        if (typeof events[event] !== 'object') events[event] = {};
+        if (typeof eventDefaults !== 'object') eventDefaults = {};
+        events[event] = defaults(events[event], eventDefaults, options);
+    });
+    return events;
 };
 
 WebpackNotifierPlugin.prototype.compileMessage = function(stats) {
@@ -41,14 +67,8 @@ WebpackNotifierPlugin.prototype.compileMessage = function(stats) {
 WebpackNotifierPlugin.prototype.compilationDone = function(stats) {
     var msg = this.compileMessage(stats);
     if (msg) {
-        var contentImage = ('contentImage' in this.options) ?
-            this.options.contentImage : DEFAULT_LOGO;
-
-        notifier.notify({
-            title: this.options.title || 'Webpack',
-            message: msg,
-            contentImage: contentImage,
-        });
+        this.options.message = msg;
+        notifier.notify(this.options);
     }
 };
 
