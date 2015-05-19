@@ -1,6 +1,7 @@
 var path = require('path');
 var notifier = require('node-notifier');
 var defaults = require('lodash.defaults');
+var assign = require('object-assign');
 
 var WebpackNotifierPlugin = module.exports = function(options, events) {
     if (typeof options !== 'object') options = {};
@@ -34,41 +35,51 @@ WebpackNotifierPlugin.prototype.prepareDefaults = function(events, options) {
     return events;
 };
 
-WebpackNotifierPlugin.prototype.compileMessage = function(stats) {
-    var error;
-    if (stats.hasErrors()) {
-        error = stats.compilation.errors[0];
-
-    } else if (stats.hasWarnings() && !this.options.excludeWarnings) {
-        error = stats.compilation.warnings[0];
-
-    } else if (!this.lastBuildSucceeded || this.options.alwaysNotify) {
-        this.lastBuildSucceeded = true;
-        return 'Build successful';
-
-    } else {
-        return;
-    }
-
-    this.lastBuildSucceeded = false;
-
+WebpackNotifierPlugin.prototype.formatErrorMessage = function (error) {
     var message;
     if (error.module && error.module.rawRequest)
         message = error.module.rawRequest + '\n';
-
     if (error.error)
         message += error.error.toString();
     else if (error.warning)
         message += error.warning.toString();
+    return {
+        message: message
+    };
+};
 
-    return message;
+WebpackNotifierPlugin.prototype.compileMessage = function(stats) {
+    var error;
+    var notifyOptions;
+
+    if (stats.hasErrors()) {
+        this.lastBuildSucceeded = false;
+        if (this.events.error) notifyOptions = assign(
+            this.formatErrorMessage(stats.compilation.errors[0]),
+            this.events.error
+        );
+    } else if (stats.hasWarnings()) {
+        this.lastBuildSucceeded = false;
+        if (this.events.warning) notifyOptions = assign(
+            this.formatErrorMessage(stats.compilation.warnings[0]),
+            this.events.warning
+        );
+    } else if (!this.lastBuildSucceeded) {
+        this.lastBuildSucceeded = true;
+        notifyOptions = this.events.success;
+    } else {
+        if (this.events.rebuild) notifyOptions = assign(
+            {message: 'rebuild'},
+            this.events.rebuild
+        );
+    }
+    return notifyOptions;
 };
 
 WebpackNotifierPlugin.prototype.compilationDone = function(stats) {
     var msg = this.compileMessage(stats);
     if (msg) {
-        this.options.message = msg;
-        notifier.notify(this.options);
+        notifier.notify(msg);
     }
 };
 

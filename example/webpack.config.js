@@ -7,6 +7,10 @@ module.exports = {
         filename: "bundle.js"
     },
     plugins: [
-        new WebpackNotifierPlugin(),
+        new WebpackNotifierPlugin(null, {
+          success: {sound: true},
+          rebuild: true,
+          error: {sound: true}
+        })
     ]
 };
