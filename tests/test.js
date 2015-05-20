@@ -1,17 +1,54 @@
 var WNP = require('../index');
 var assert = require('assert');
 
+const DEFAULT_OPTIONS = JSON.parse(JSON.stringify(WNP.DEFAULT_OPTIONS));
+
 describe('WebpackNotifierPlugin', function () {
+
+  it('should create the right default events', function () {
+    var wnp = new WNP();
+    assert.deepEqual(wnp.events, {
+      error: DEFAULT_OPTIONS,
+      warning: DEFAULT_OPTIONS,
+      rebuild: false,
+      success: {
+        title: DEFAULT_OPTIONS.title,
+        contentImage: DEFAULT_OPTIONS.contentImage,
+        message: 'Build successful'
+      }
+    })
+  });
+
+  it('should allow an event to be overridden', function () {
+    var wnp = new WNP({
+      error: {
+        title: 'Error'
+      }
+    });
+    assert.deepEqual(wnp.events, {
+      error: {
+        title: 'Error',
+        contentImage: DEFAULT_OPTIONS.contentImage
+      },
+      warning: DEFAULT_OPTIONS,
+      rebuild: false,
+      success: {
+        title: DEFAULT_OPTIONS.title,
+        contentImage: DEFAULT_OPTIONS.contentImage,
+        message: 'Build successful'
+      }
+    })
+  });
 
   describe('#prepareDefaults', function () {
     it('should generate defaults for empty case', function () {
       assert.deepEqual(WNP.prototype.prepareDefaults(), {
-        error: WNP.DEFAULT_OPTIONS,
-        warning: WNP.DEFAULT_OPTIONS,
+        error: DEFAULT_OPTIONS,
+        warning: DEFAULT_OPTIONS,
         rebuild: false,
         success: {
-          title: WNP.DEFAULT_OPTIONS.title,
-          contentImage: WNP.DEFAULT_OPTIONS.contentImage,
+          title: DEFAULT_OPTIONS.title,
+          contentImage: DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         }
       });
@@ -21,11 +58,11 @@ describe('WebpackNotifierPlugin', function () {
       assert.deepEqual(WNP.prototype.prepareDefaults({
         warning: false
       }), {
-        error: WNP.DEFAULT_OPTIONS,
+        error: DEFAULT_OPTIONS,
         warning: false,
         rebuild: false,
         success: {
-          title: WNP.DEFAULT_OPTIONS.title,
+          title: DEFAULT_OPTIONS.title,
           contentImage: WNP.DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         }
@@ -39,12 +76,12 @@ describe('WebpackNotifierPlugin', function () {
           sound: true
         }
       }), {
-        error: WNP.DEFAULT_OPTIONS,
-        warning: WNP.DEFAULT_OPTIONS,
+        error: DEFAULT_OPTIONS,
+        warning: DEFAULT_OPTIONS,
         success: {
           title: 'Webpack success',
           sound: true,
-          contentImage: WNP.DEFAULT_OPTIONS.contentImage,
+          contentImage: DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         },
         rebuild: false
@@ -55,30 +92,30 @@ describe('WebpackNotifierPlugin', function () {
       assert.deepEqual(WNP.prototype.prepareDefaults({
         rebuild: true
       }), {
-        error: WNP.DEFAULT_OPTIONS,
-        warning: WNP.DEFAULT_OPTIONS,
+        error: DEFAULT_OPTIONS,
+        warning: DEFAULT_OPTIONS,
         success: {
           title: 'Webpack',
-          contentImage: WNP.DEFAULT_OPTIONS.contentImage,
+          contentImage: DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         },
-        rebuild: WNP.DEFAULT_OPTIONS
+        rebuild: DEFAULT_OPTIONS
       });
       assert.deepEqual(WNP.prototype.prepareDefaults({
         rebuild: {
           message: 'Build successful'
         }
       }), {
-        error: WNP.DEFAULT_OPTIONS,
-        warning: WNP.DEFAULT_OPTIONS,
+        error: DEFAULT_OPTIONS,
+        warning: DEFAULT_OPTIONS,
         success: {
           title: 'Webpack',
-          contentImage: WNP.DEFAULT_OPTIONS.contentImage,
+          contentImage: DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         },
         rebuild: {
           title: 'Webpack',
-          contentImage: WNP.DEFAULT_OPTIONS.contentImage,
+          contentImage: DEFAULT_OPTIONS.contentImage,
           message: 'Build successful'
         }
       });

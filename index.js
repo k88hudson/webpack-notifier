@@ -3,7 +3,7 @@ var notifier = require('node-notifier');
 var defaults = require('lodash.defaults');
 var assign = require('object-assign');
 
-var WebpackNotifierPlugin = module.exports = function(options, events) {
+var WebpackNotifierPlugin = module.exports = function(events, options) {
     if (typeof options !== 'object') options = {};
     this.options = defaults(options, WebpackNotifierPlugin.DEFAULT_OPTIONS);
     this.events = this.prepareDefaults(events, this.options);
